@@ -5,16 +5,16 @@ A PHP Laravel library for using the Danish NemID for authenticating a user.
 I'm sure it can be used easily without laravel also. Feel free to contribute to improvements
 
 ![image](https://cloud.githubusercontent.com/assets/1279756/20196240/18e4a2b8-a79a-11e6-832b-36933da588e3.png)
- 
-### The library supports: 
+
+### The library supports:
   - Preparing the parameters for the applet
   - Validate the returned signature and the certificate chain
   - Extract Name and PID
   - Matching PID to CPR SOAP webservice
-    
+
 This is a rewrite of an original library for an older version of the applet in java
 
-Original library can be found: https://code.google.com/p/nemid-php/ 
+Original library can be found: https://code.google.com/p/nemid-php/
 
 **To become a nemid partner please follow this [Link](https://www.nets.eu/dk-da/l%C3%B8sninger/nemid/nemid-tjenesteudbyder/Pages/s%C3%A5dan-bliver-du-nemid-tjenesteudbyder.aspx)**
 
@@ -59,18 +59,28 @@ php artisan vendor:publish --provider="Nodes\NemId\ServiceProvider" --force
 sudo apt-get install php7.0-bcmath
 ```
 
-You got your p12 certificate now generate pem files, use following commands: 
+You got your p12 certificate now generate pem files, use following commands:
 
 ##### publicCertificate:
 `openssl pkcs12 -in path.p12 -out certificate.pem -clcerts -nokeys`
 
+**NB: Remove the initial lines with `Bag Attributes` if present.**
+
+Only the `-----BEGIN CERTIFICATE-----`, the base64 encoded certificate and `-----END CERTIFICATE-----` are relevant.
+
 ##### privateKey & privateKeyPassword
 `openssl pkcs12 -in path.p12 -clcerts -out privateKey.pem`
 
-##### certifateAndPrivateKey & password (For PID/CPR match)
-`openssl pkcs12 -in path.p12 -out certicateAndPrivateKey.pem -nocerts -nodes`     
+Openssl will prompt you for a `PEM pass phrase` that will have to be set in your `nemid.php` configuration.
 
-Now you have all the certificates needed 
+##### certifateAndPrivateKey & password (For PID/CPR match)
+`openssl pkcs12 -in path.p12 -out certificateAndPrivateKey.pem -chain`
+
+The `-nodes` flag disables encryption and password protection of your certificates (it has nothing to do with Nodes).
+
+If left out Openssl will prompt you for a `PEM pass phrase` that will have to be set in your `nemid.php` configuration.
+
+Now you have all the certificates needed -
 
 ##### Copy the config file to htdocs and fill settings
 Look in the config file for more help
@@ -88,7 +98,7 @@ Setup a html document with the iframe url, js with param data and a form for cal
 
 `$login->getParams();`
 
-The iframe will now submit the response to the form 
+The iframe will now submit the response to the form
 
 The submitted data is base64 encoded, besides that all errors comes as string while successfully logins are xml documents
 
@@ -106,7 +116,7 @@ Now validate the certificates and extract name and PID from it by initialize a C
 
 `$certificate->getSubject()->getPid();`
 
-#PID/CPR match integration
+## PID/CPR match integration
 Initialize a PidCprMatch object and call the function with pid and cpr params.
 
 `$pidCprMatch = new PidCprMatch(config('nodes.nemid'));`
@@ -122,6 +132,6 @@ A response object will be returned. The object has functions to to check match a
  - The name `Pseudonym` or `Pseudonym Pseudonym` will be used for version 1 of nemid users, which have not set their name afterwards
 
 Enjoy
- 
+
 
 
